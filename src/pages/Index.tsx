@@ -34,7 +34,7 @@ const Index = () => {
                 </Link>
                 <Button 
                   variant="outline" 
-                  className="border-white text-white hover:bg-white/20"
+                  className="border-white text-blue-600 bg-white/20 hover:bg-white/30" 
                   onClick={scrollToFeatures}
                 >
                   Learn More
