@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,8 @@ import IssuesTimeline from '@/components/IssuesTimeline';
 import AddressSearch from '@/components/AddressSearch';
 import { useToast } from '@/hooks/use-toast';
 import { searchBuildingData, BuildingData } from '@/utils/buildingSearch';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const Results = () => {
   const [searchParams] = useSearchParams();
@@ -37,11 +38,9 @@ const Results = () => {
       setShowNoResults(false);
       
       try {
-        // Parse the search term - could be a full address, borough, etc.
         const searchTerm = decodeURIComponent(address).trim();
         console.log("Searching for:", searchTerm);
         
-        // Use the new search utility
         const data = await searchBuildingData(searchTerm);
         
         if (!data) {
@@ -66,18 +65,15 @@ const Results = () => {
     fetchBuildingData();
   }, [address, toast]);
   
-  // Helper function to count issues by category
   const getCategoryBreakdown = (issues: any[]) => {
     const categories: Record<string, number> = {};
     
-    // Count issues by major category
     issues.forEach(issue => {
       const category = issue["Major Category"] || "Other";
       if (!categories[category]) categories[category] = 0;
       categories[category]++;
     });
     
-    // Format as array for display
     return Object.entries(categories).map(([name, count]) => ({
       name,
       count
@@ -86,207 +82,219 @@ const Results = () => {
   
   if (isLoading) {
     return (
-      <div className="container mx-auto py-12 px-4">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Searching for building information...</p>
+      <div className="min-h-screen bg-neutral-950">
+        <Header />
+        <div className="container mx-auto py-12 px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-neutral-400">Searching for building information...</p>
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
   
   if (showNoResults) {
     return (
-      <div className="container mx-auto py-12 px-4">
-        <div className="mb-6">
-          <AddressSearch />
+      <div className="min-h-screen bg-neutral-950">
+        <Header />
+        <div className="container mx-auto py-12 px-4">
+          <div className="mb-6">
+            <AddressSearch />
+          </div>
+          <Card className="bg-neutral-900 border-neutral-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Info className="h-5 w-5 text-emerald-500" />
+                No Results Found
+              </CardTitle>
+              <CardDescription className="text-neutral-400">
+                We couldn't find any buildings matching your search.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="py-6 text-center">
+                <p className="text-neutral-400 mb-4">
+                  Try modifying your search or try searching for a different address, borough, or neighborhood.
+                </p>
+                <p className="text-sm text-neutral-500">
+                  Note: Our database only includes NYC buildings with reported issues.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5 text-blue-600" />
-              No Results Found
-            </CardTitle>
-            <CardDescription>
-              We couldn't find any buildings matching your search.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="py-6 text-center">
-              <p className="text-gray-600 mb-4">
-                Try modifying your search or try searching for a different address, borough, or neighborhood.
-              </p>
-              <p className="text-sm text-gray-500">
-                Note: Our database only includes NYC buildings with reported issues.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <Footer />
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto py-6 md:py-12 px-4">
-      <div className="mb-8">
-        <AddressSearch />
-      </div>
-      
-      {buildingData && (
-        <>
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Building className="h-6 w-6" />
-                {buildingData.address}
-              </h1>
-              <p className="text-gray-600 mt-1">{buildingData.borough}, New York City</p>
+    <div className="min-h-screen flex flex-col bg-neutral-950">
+      <Header />
+      <div className="container mx-auto py-6 md:py-12 px-4 flex-1">
+        <div className="mb-8">
+          <AddressSearch />
+        </div>
+        
+        {buildingData && (
+          <>
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+              <div>
+                <h1 className="text-3xl font-bold flex items-center gap-2 text-white">
+                  <Building className="h-6 w-6 text-emerald-500" />
+                  {buildingData.address}
+                </h1>
+                <p className="text-neutral-400 mt-1">{buildingData.borough}, New York City</p>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <Badge className="bg-emerald-500 hover:bg-emerald-600">
+                  {buildingData.totalComplaints} Reported Issues
+                </Badge>
+                <Button variant="outline" size="sm" className="border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800">
+                  Save Building
+                </Button>
+              </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <Badge className="bg-blue-600 hover:bg-blue-700">
-                {buildingData.totalComplaints} Reported Issues
-              </Badge>
-              <Button variant="outline" size="sm">
-                Save Building
-              </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <Card className="lg:col-span-2 bg-neutral-900 border-neutral-800">
+                <CardHeader>
+                  <CardTitle>Building Overview</CardTitle>
+                  <CardDescription>
+                    Summary of reported issues in this building
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6">
+                    <LiveabilityScore issues={buildingData.housingIssues} />
+                  </div>
+                  
+                  <Tabs defaultValue="issues">
+                    <TabsList className="grid grid-cols-4 mb-4">
+                      <TabsTrigger value="issues">Issues</TabsTrigger>
+                      <TabsTrigger value="summary">AI Summary</TabsTrigger>
+                      <TabsTrigger value="costs">Cost Estimates</TabsTrigger>
+                      <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="issues">
+                      <IssuesList issues={buildingData.housingIssues} />
+                    </TabsContent>
+                    
+                    <TabsContent value="summary">
+                      <AISummary issues={buildingData.housingIssues} address={buildingData.address} />
+                    </TabsContent>
+                    
+                    <TabsContent value="costs">
+                      <IssuesCostEstimate issues={buildingData.housingIssues} />
+                    </TabsContent>
+                    
+                    <TabsContent value="timeline">
+                      <IssuesTimeline issues={buildingData.housingIssues} />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+              
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Building Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Building ID:</dt>
+                        <dd>{buildingData.buildingId || "Not available"}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Borough:</dt>
+                        <dd>{buildingData.borough}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">ZIP Code:</dt>
+                        <dd>{buildingData.housingIssues[0]?.["Post Code"] || "Not available"}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Community Board:</dt>
+                        <dd>{buildingData.housingIssues[0]?.["Community Board"] || "Not available"}</dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Issue Categories</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {getCategoryBreakdown(buildingData.housingIssues).map((category, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <span className="text-sm">{category.name}</span>
+                          <Badge variant={category.count > 5 ? "destructive" : "outline"}>
+                            {category.count}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Alert>
+                  <AlertTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Student Housing Alert
+                  </AlertTitle>
+                  <AlertDescription className="mt-2 text-sm">
+                    This building has several issues that may affect student living comfort. Review the full report before signing.
+                  </AlertDescription>
+                </Alert>
+              </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="lg:col-span-2">
+            
+            <Card className="mb-8 bg-neutral-900 border-neutral-800">
               <CardHeader>
-                <CardTitle>Building Overview</CardTitle>
+                <CardTitle>Similar Buildings Nearby</CardTitle>
                 <CardDescription>
-                  Summary of reported issues in this building
+                  Compare with other buildings in this neighborhood
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6">
-                  <LiveabilityScore issues={buildingData.housingIssues} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="overflow-hidden">
+                      <CardContent className="p-3">
+                        <h4 className="text-sm font-medium mb-1">
+                          {buildingData.address.split(',')[0].replace(/\d+/, (num) => String(Number(num) + i * 2))}
+                        </h4>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-500">
+                            {Math.max(1, buildingData.totalComplaints - i * 5)} issues
+                          </span>
+                          <Badge variant="outline" className={
+                            i === 0 ? "bg-red-50 text-red-700" : 
+                            i === 1 ? "bg-yellow-50 text-yellow-700" : 
+                            "bg-green-50 text-green-700"
+                          }>
+                            {i === 0 ? "High" : i === 1 ? "Medium" : "Low"} Risk
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                
-                <Tabs defaultValue="issues">
-                  <TabsList className="grid grid-cols-4 mb-4">
-                    <TabsTrigger value="issues">Issues</TabsTrigger>
-                    <TabsTrigger value="summary">AI Summary</TabsTrigger>
-                    <TabsTrigger value="costs">Cost Estimates</TabsTrigger>
-                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="issues">
-                    <IssuesList issues={buildingData.housingIssues} />
-                  </TabsContent>
-                  
-                  <TabsContent value="summary">
-                    <AISummary issues={buildingData.housingIssues} address={buildingData.address} />
-                  </TabsContent>
-                  
-                  <TabsContent value="costs">
-                    <IssuesCostEstimate issues={buildingData.housingIssues} />
-                  </TabsContent>
-                  
-                  <TabsContent value="timeline">
-                    <IssuesTimeline issues={buildingData.housingIssues} />
-                  </TabsContent>
-                </Tabs>
               </CardContent>
             </Card>
-            
-            <div className="space-y-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Building Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Building ID:</dt>
-                      <dd>{buildingData.buildingId || "Not available"}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Borough:</dt>
-                      <dd>{buildingData.borough}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">ZIP Code:</dt>
-                      <dd>{buildingData.housingIssues[0]?.["Post Code"] || "Not available"}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">Community Board:</dt>
-                      <dd>{buildingData.housingIssues[0]?.["Community Board"] || "Not available"}</dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Issue Categories</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {getCategoryBreakdown(buildingData.housingIssues).map((category, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-sm">{category.name}</span>
-                        <Badge variant={category.count > 5 ? "destructive" : "outline"}>
-                          {category.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Alert>
-                <AlertTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Student Housing Alert
-                </AlertTitle>
-                <AlertDescription className="mt-2 text-sm">
-                  This building has several issues that may affect student living comfort. Review the full report before signing.
-                </AlertDescription>
-              </Alert>
-            </div>
-          </div>
-          
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Similar Buildings Nearby</CardTitle>
-              <CardDescription>
-                Compare with other buildings in this neighborhood
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <CardContent className="p-3">
-                      <h4 className="text-sm font-medium mb-1">
-                        {buildingData.address.split(',')[0].replace(/\d+/, (num) => String(Number(num) + i * 2))}
-                      </h4>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-500">
-                          {Math.max(1, buildingData.totalComplaints - i * 5)} issues
-                        </span>
-                        <Badge variant="outline" className={
-                          i === 0 ? "bg-red-50 text-red-700" : 
-                          i === 1 ? "bg-yellow-50 text-yellow-700" : 
-                          "bg-green-50 text-green-700"
-                        }>
-                          {i === 0 ? "High" : i === 1 ? "Medium" : "Low"} Risk
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+          </>
+        )}
+      </div>
+      <Footer />
     </div>
   );
 };
