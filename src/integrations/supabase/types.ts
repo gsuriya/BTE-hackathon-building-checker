@@ -9,7 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      nyc_housing_data: {
+        Row: {
+          Apartment: string | null
+          BBL: string | null
+          BIN: string | null
+          Block: string | null
+          Borough: string | null
+          "Building ID": string | null
+          "Census Tract": string | null
+          "Community Board": string | null
+          "Complaint Anonymous Flag": string | null
+          "Complaint ID": string | null
+          "Complaint Status": string | null
+          "Complaint Status Date": string | null
+          "Council District": string | null
+          created_at: string
+          "House Number": string | null
+          id: number
+          Latitude: string | null
+          Longitude: string | null
+          Lot: string | null
+          "Major Category": string | null
+          "Minor Category": string | null
+          NTA: string | null
+          "Post Code": string | null
+          "Problem Code": string | null
+          "Problem Duplicate Flag": string | null
+          "Problem ID": string | null
+          "Problem Status": string | null
+          "Problem Status Date": string | null
+          "Received Date": string | null
+          "Space Type": string | null
+          "Status Description": string | null
+          "Street Name": string | null
+          Type: string | null
+          "Unique Key": string | null
+          "Unit Type": string | null
+        }
+        Insert: {
+          Apartment?: string | null
+          BBL?: string | null
+          BIN?: string | null
+          Block?: string | null
+          Borough?: string | null
+          "Building ID"?: string | null
+          "Census Tract"?: string | null
+          "Community Board"?: string | null
+          "Complaint Anonymous Flag"?: string | null
+          "Complaint ID"?: string | null
+          "Complaint Status"?: string | null
+          "Complaint Status Date"?: string | null
+          "Council District"?: string | null
+          created_at?: string
+          "House Number"?: string | null
+          id?: number
+          Latitude?: string | null
+          Longitude?: string | null
+          Lot?: string | null
+          "Major Category"?: string | null
+          "Minor Category"?: string | null
+          NTA?: string | null
+          "Post Code"?: string | null
+          "Problem Code"?: string | null
+          "Problem Duplicate Flag"?: string | null
+          "Problem ID"?: string | null
+          "Problem Status"?: string | null
+          "Problem Status Date"?: string | null
+          "Received Date"?: string | null
+          "Space Type"?: string | null
+          "Status Description"?: string | null
+          "Street Name"?: string | null
+          Type?: string | null
+          "Unique Key"?: string | null
+          "Unit Type"?: string | null
+        }
+        Update: {
+          Apartment?: string | null
+          BBL?: string | null
+          BIN?: string | null
+          Block?: string | null
+          Borough?: string | null
+          "Building ID"?: string | null
+          "Census Tract"?: string | null
+          "Community Board"?: string | null
+          "Complaint Anonymous Flag"?: string | null
+          "Complaint ID"?: string | null
+          "Complaint Status"?: string | null
+          "Complaint Status Date"?: string | null
+          "Council District"?: string | null
+          created_at?: string
+          "House Number"?: string | null
+          id?: number
+          Latitude?: string | null
+          Longitude?: string | null
+          Lot?: string | null
+          "Major Category"?: string | null
+          "Minor Category"?: string | null
+          NTA?: string | null
+          "Post Code"?: string | null
+          "Problem Code"?: string | null
+          "Problem Duplicate Flag"?: string | null
+          "Problem ID"?: string | null
+          "Problem Status"?: string | null
+          "Problem Status Date"?: string | null
+          "Received Date"?: string | null
+          "Space Type"?: string | null
+          "Status Description"?: string | null
+          "Street Name"?: string | null
+          Type?: string | null
+          "Unique Key"?: string | null
+          "Unit Type"?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
