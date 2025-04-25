@@ -220,11 +220,11 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
   
   // Prepare severity data for the pie chart
-  const severityData = [
+  const severityData = analysis.severityBreakdown ? [
     { name: 'High', value: analysis.severityBreakdown.high },
     { name: 'Medium', value: analysis.severityBreakdown.medium },
     { name: 'Low', value: analysis.severityBreakdown.low }
-  ];
+  ] : []; // Provide default empty array if breakdown is missing
   
   // Get critical alerts if any
   const hasCriticalAlerts = analysis.criticalAlerts && analysis.criticalAlerts.length > 0;
@@ -242,15 +242,15 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-neutral-400">{analysis.summary}</p>
+            <p className="text-neutral-400">{analysis.summary || 'Generating summary...'}</p>
             
             <div className="grid grid-cols-2 gap-4 mt-6">
               <div className="space-y-2">
                 <p className="text-sm text-neutral-400">Livability Score</p>
                 <div className="flex items-center">
-                  <Progress value={analysis.livabilityScore} className="h-2 mr-2" />
-                  <span className={`font-semibold ${getSeverityColor(analysis.livabilityScore)}`}>
-                    {analysis.livabilityScore}
+                  <Progress value={analysis.livabilityScore || 0} className="h-2 mr-2" />
+                  <span className={`font-semibold ${getSeverityColor(analysis.livabilityScore || 0)}`}>
+                    {analysis.livabilityScore !== undefined ? analysis.livabilityScore : '-'}
                   </span>
                 </div>
               </div>
@@ -258,8 +258,9 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
               <div className="space-y-2">
                 <p className="text-sm text-neutral-400">Est. Repair Costs</p>
                 <p className="font-semibold text-white">
-                  ${analysis.estimatedRepairCosts.low.toLocaleString()} - 
-                  ${analysis.estimatedRepairCosts.high.toLocaleString()}
+                  {analysis.estimatedRepairCosts ? 
+                    `$${analysis.estimatedRepairCosts.low.toLocaleString()} - $${analysis.estimatedRepairCosts.high.toLocaleString()}` 
+                    : 'Calculating...'}
                 </p>
               </div>
             </div>
