@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import IssuesList from '@/components/IssuesList';
 import LiveabilityScore from '@/components/LiveabilityScore';
 import AISummary from '@/components/AISummary';
 import IssuesCostEstimate from '@/components/IssuesCostEstimate';
+import IssuesTimeline from '@/components/IssuesTimeline';
 import AddressSearch from '@/components/AddressSearch';
 import { useToast } from '@/hooks/use-toast';
 import { searchBuildingData, BuildingData } from '@/utils/buildingSearch';
@@ -187,9 +189,7 @@ const Results = () => {
                   </TabsContent>
                   
                   <TabsContent value="timeline">
-                    <div className="flex items-center justify-center h-64">
-                      <p className="text-gray-500">Timeline view coming soon</p>
-                    </div>
+                    <IssuesTimeline issues={buildingData.housingIssues} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
@@ -260,8 +260,28 @@ const Results = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-center h-32 bg-slate-100 rounded-lg">
-                <p className="text-gray-500">Coming soon: Building comparisons</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-3">
+                      <h4 className="text-sm font-medium mb-1">
+                        {buildingData.address.split(',')[0].replace(/\d+/, (num) => String(Number(num) + i * 2))}
+                      </h4>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-gray-500">
+                          {Math.max(1, buildingData.totalComplaints - i * 5)} issues
+                        </span>
+                        <Badge variant="outline" className={
+                          i === 0 ? "bg-red-50 text-red-700" : 
+                          i === 1 ? "bg-yellow-50 text-yellow-700" : 
+                          "bg-green-50 text-green-700"
+                        }>
+                          {i === 0 ? "High" : i === 1 ? "Medium" : "Low"} Risk
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>

@@ -148,7 +148,7 @@ const LiveabilityScore: React.FC<LiveabilityScoreProps> = ({ issues }) => {
               
               return (
                 <div key={i} className="flex items-center justify-between">
-                  <span className="text-sm">{label}</span>
+                  <span className="text-sm">{String(label)}</span>
                   <span className={`font-medium text-sm ${getScoreColor(score)}`}>
                     {score.toFixed(1)}
                   </span>
