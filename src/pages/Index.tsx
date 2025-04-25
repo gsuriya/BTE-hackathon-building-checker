@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building, Database, Home, MapPin, Search, Star } from "lucide-react";
+import { Building, Database, Home, MapPin, Search, Star, Map } from "lucide-react";
 import AddressSearch from '@/components/AddressSearch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from 'react-router-dom';
 
 const Index = () => {
+  const scrollToFeatures = () => {
+    document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
       {/* Hero Section */}
@@ -22,10 +27,16 @@ const Index = () => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <Button className="bg-white text-blue-600 hover:bg-gray-100">
-                  Get Started
-                </Button>
-                <Button variant="outline" className="border-white text-blue-600 hover:bg-white/20">
+                <Link to="/map-search">
+                  <Button className="bg-white text-blue-600 hover:bg-gray-100">
+                    Get Started
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white/20"
+                  onClick={scrollToFeatures}
+                >
                   Learn More
                 </Button>
               </div>
@@ -45,28 +56,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Search Section */}
-      <section className="container px-4 md:px-6 py-12 mx-auto -mt-8 relative z-10">
-        <div className="bg-white rounded-xl shadow-xl p-6 md:p-8">
-          <Tabs defaultValue="address" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="address">Address Search</TabsTrigger>
-              <TabsTrigger value="map">Map View</TabsTrigger>
-            </TabsList>
-            <TabsContent value="address" className="space-y-4">
-              <AddressSearch />
-            </TabsContent>
-            <TabsContent value="map">
-              <div className="h-[400px] bg-slate-100 rounded-lg flex items-center justify-center">
-                <p className="text-slate-500">Interactive map coming soon...</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
       {/* Features Section */}
-      <section className="container px-4 md:px-6 py-12 mx-auto">
+      <section id="features-section" className="container px-4 md:px-6 py-12 mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold">Why Choose Our Platform?</h2>
           <p className="text-gray-600 mt-2 max-w-2xl mx-auto">
@@ -153,9 +144,11 @@ const Index = () => {
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Start searching now and discover the real story behind that rental listing.
           </p>
-          <Button className="bg-blue-600 h-12 px-8">
-            Search Now
-          </Button>
+          <Link to="/map-search">
+            <Button className="bg-blue-600 h-12 px-8">
+              Search Now
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

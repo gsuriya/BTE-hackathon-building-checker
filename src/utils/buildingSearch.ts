@@ -31,6 +31,7 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
     
     // If we have what looks like a house number, search more specifically
     if (hasHouseNumber) {
+      // Use equality check for house number
       query = query.eq('"House Number"', potentialHouseNumber);
       
       // If we have more than just a house number, also filter by street name
@@ -39,7 +40,7 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
         query = query.ilike('"Street Name"', `%${streetName}%`);
       }
     } else {
-      // If no house number, do a more general search
+      // If no house number, do a more general search on either field
       query = query.or(`"House Number".ilike.%${searchTermClean}%,"Street Name".ilike.%${searchTermClean}%`);
     }
     
@@ -76,7 +77,7 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
       }
       
       // Build a query for each relevant word
-      const fuzzySearches = [];
+      const fuzzySearches: string[] = [];
       for (const word of relevantWords) {
         fuzzySearches.push(`"House Number"::text='${word}'`, `"Street Name".ilike.%${word}%`);
       }
