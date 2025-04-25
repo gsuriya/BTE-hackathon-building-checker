@@ -22,7 +22,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Test the connection
-(async () => {
+/* (async () => {
   try {
     const { error, count } = await supabase
       .from('nyc_housing_data')
@@ -40,4 +40,4 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   } catch (err) {
     console.error('Failed to test Supabase connection:', err);
   }
-})(); 
+})(); */ 

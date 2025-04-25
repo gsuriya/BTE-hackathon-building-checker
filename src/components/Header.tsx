@@ -11,7 +11,7 @@ const Header = () => {
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
             <Map className="h-5 w-5 text-emerald-500" />
           </div>
-          <span className="text-xl font-bold text-white">NYC Building Checker</span>
+          <span className="text-xl font-bold text-white">Bellam Building Checker</span>
         </Link>
         
         <div className="hidden md:flex items-center gap-6">
