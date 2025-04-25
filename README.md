@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+# NYC Building Checker
 
-## Project info
+A modern web application that makes apartment hunting in New York City transparent and stress-free by providing detailed building analysis and complaint history.
 
-**URL**: https://lovable.dev/projects/d837b080-12b3-4eae-98e5-f8a2ba2614de
+## Features
 
-## How can I edit this code?
+- **Building Reports**: Comprehensive analysis of building complaints and issues
+- **Interactive Map Search**: Find and analyze buildings directly from an interactive map
+- **Livability Scores**: AI-powered scoring system based on building history
+- **Issue Categories**: Detailed breakdown of building issues by category
+- **Monthly Trends**: Track complaint patterns over time
+- **Smart Recommendations**: Get actionable insights for each building
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React + TypeScript + Vite
+- **UI Components**: shadcn/ui
+- **Styling**: Tailwind CSS
+- **Database**: Supabase
+- **Maps**: Mapbox
+- **AI Analysis**: DeepSeek AI
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d837b080-12b3-4eae-98e5-f8a2ba2614de) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Supabase account for database
+- Mapbox API key for maps
+- DeepSeek API key for AI analysis
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+1. Clone the repository
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/gsuriya/empty-beginning-project-start.git
+cd empty-beginning-project-start
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Create a `.env` file in the root directory with your API keys:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_key
+VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_token
+VITE_DEEPSEEK_API_KEY=your_deepseek_key
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- `/src/components` - Reusable UI components
+- `/src/pages` - Main application pages
+- `/src/utils` - Utility functions and helpers
+- `/src/lib` - Third-party service configurations
+- `/src/styles` - Global styles and Tailwind configuration
 
-**Use GitHub Codespaces**
+## Features in Detail
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Building Analysis
+- Comprehensive complaint history
+- AI-powered livability scoring
+- Estimated repair costs
+- Impact on daily life assessment
+- Severity breakdown of issues
 
-## What technologies are used for this project?
+### Interactive Search
+- Address-based search
+- Map-based building selection
+- Borough filtering
+- Real-time results
 
-This project is built with:
+### Data Visualization
+- Issue categorization
+- Monthly trends
+- Severity distribution
+- Location-specific complaints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Contributing
 
-## How can I deploy this project?
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Simply open [Lovable](https://lovable.dev/projects/d837b080-12b3-4eae-98e5-f8a2ba2614de) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
