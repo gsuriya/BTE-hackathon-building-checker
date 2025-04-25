@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Building, Database, Home, MapPin, Search, Star, Map, Check } from "lucide-react";
@@ -22,7 +21,7 @@ const Index = () => {
             <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-4">
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-sm font-medium mb-2">
-                  <Check className="mr-1 h-4 w-4" /> Trusted by 10,000+ NYC renters
+                  Trusted by 10,000+ NYC renters
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-white">
                   Find Your <span className="text-emerald-500">Perfect Apartment</span> Without Surprises
@@ -117,7 +116,10 @@ const Index = () => {
               We specialize in helping students find safe, reliable housing near campus. Get insights from other students who've lived there before you sign that lease.
             </p>
             <div className="pt-4">
-              <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
+              <Button 
+                className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                onClick={() => window.open("https://www.stern.nyu.edu/portal-partners/student-engagement/student-life/student-housing/off-campus-living-resources#off", "_blank")}
+              >
                 Student Housing Guide
               </Button>
             </div>
