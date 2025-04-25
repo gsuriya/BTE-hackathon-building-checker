@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -164,8 +165,8 @@ const Results = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               <Card className="lg:col-span-2 bg-neutral-900 border-neutral-800">
                 <CardHeader>
-                  <CardTitle>Building Overview</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-white">Building Overview</CardTitle>
+                  <CardDescription className="text-neutral-400">
                     Summary of reported issues in this building
                   </CardDescription>
                 </CardHeader>
@@ -174,12 +175,12 @@ const Results = () => {
                     <LiveabilityScore issues={buildingData.housingIssues} />
                   </div>
                   
-                  <Tabs defaultValue="issues">
-                    <TabsList className="grid grid-cols-4 mb-4">
-                      <TabsTrigger value="issues">Issues</TabsTrigger>
-                      <TabsTrigger value="summary">AI Summary</TabsTrigger>
-                      <TabsTrigger value="costs">Cost Estimates</TabsTrigger>
-                      <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                  <Tabs defaultValue="issues" className="text-white">
+                    <TabsList className="grid grid-cols-4 mb-4 bg-neutral-800">
+                      <TabsTrigger value="issues" className="text-neutral-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Issues</TabsTrigger>
+                      <TabsTrigger value="summary" className="text-neutral-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">AI Summary</TabsTrigger>
+                      <TabsTrigger value="costs" className="text-neutral-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Cost Estimates</TabsTrigger>
+                      <TabsTrigger value="timeline" className="text-neutral-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Timeline</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="issues">
@@ -202,42 +203,42 @@ const Results = () => {
               </Card>
               
               <div className="space-y-6">
-                <Card>
+                <Card className="bg-neutral-900 border-neutral-800">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Building Details</CardTitle>
+                    <CardTitle className="text-lg text-white">Building Details</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <dl className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <dt className="text-gray-500">Building ID:</dt>
-                        <dd>{buildingData.buildingId || "Not available"}</dd>
+                        <dt className="text-neutral-400">Building ID:</dt>
+                        <dd className="text-white">{buildingData.buildingId || "Not available"}</dd>
                       </div>
                       <div className="flex justify-between">
-                        <dt className="text-gray-500">Borough:</dt>
-                        <dd>{buildingData.borough}</dd>
+                        <dt className="text-neutral-400">Borough:</dt>
+                        <dd className="text-white">{buildingData.borough}</dd>
                       </div>
                       <div className="flex justify-between">
-                        <dt className="text-gray-500">ZIP Code:</dt>
-                        <dd>{buildingData.housingIssues[0]?.["Post Code"] || "Not available"}</dd>
+                        <dt className="text-neutral-400">ZIP Code:</dt>
+                        <dd className="text-white">{buildingData.housingIssues[0]?.["Post Code"] || "Not available"}</dd>
                       </div>
                       <div className="flex justify-between">
-                        <dt className="text-gray-500">Community Board:</dt>
-                        <dd>{buildingData.housingIssues[0]?.["Community Board"] || "Not available"}</dd>
+                        <dt className="text-neutral-400">Community Board:</dt>
+                        <dd className="text-white">{buildingData.housingIssues[0]?.["Community Board"] || "Not available"}</dd>
                       </div>
                     </dl>
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-neutral-900 border-neutral-800">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Issue Categories</CardTitle>
+                    <CardTitle className="text-lg text-white">Issue Categories</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       {getCategoryBreakdown(buildingData.housingIssues).map((category, i) => (
                         <div key={i} className="flex items-center justify-between">
-                          <span className="text-sm">{category.name}</span>
-                          <Badge variant={category.count > 5 ? "destructive" : "outline"}>
+                          <span className="text-sm text-neutral-300">{category.name}</span>
+                          <Badge variant={category.count > 5 ? "destructive" : "outline"} className={category.count > 5 ? "" : "text-neutral-300 border-neutral-600"}>
                             {category.count}
                           </Badge>
                         </div>
@@ -246,12 +247,12 @@ const Results = () => {
                   </CardContent>
                 </Card>
                 
-                <Alert>
-                  <AlertTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
+                <Alert className="bg-neutral-900 border-neutral-700">
+                  <AlertTitle className="flex items-center gap-2 text-white">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
                     Student Housing Alert
                   </AlertTitle>
-                  <AlertDescription className="mt-2 text-sm">
+                  <AlertDescription className="mt-2 text-sm text-neutral-400">
                     This building has several issues that may affect student living comfort. Review the full report before signing.
                   </AlertDescription>
                 </Alert>
@@ -260,27 +261,27 @@ const Results = () => {
             
             <Card className="mb-8 bg-neutral-900 border-neutral-800">
               <CardHeader>
-                <CardTitle>Similar Buildings Nearby</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white">Similar Buildings Nearby</CardTitle>
+                <CardDescription className="text-neutral-400">
                   Compare with other buildings in this neighborhood
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[1, 2, 3].map((i) => (
-                    <Card key={i} className="overflow-hidden">
+                    <Card key={i} className="overflow-hidden bg-neutral-800 border-neutral-700">
                       <CardContent className="p-3">
-                        <h4 className="text-sm font-medium mb-1">
+                        <h4 className="text-sm font-medium mb-1 text-white">
                           {buildingData.address.split(',')[0].replace(/\d+/, (num) => String(Number(num) + i * 2))}
                         </h4>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-500">
+                          <span className="text-neutral-400">
                             {Math.max(1, buildingData.totalComplaints - i * 5)} issues
                           </span>
                           <Badge variant="outline" className={
-                            i === 0 ? "bg-red-50 text-red-700" : 
-                            i === 1 ? "bg-yellow-50 text-yellow-700" : 
-                            "bg-green-50 text-green-700"
+                            i === 0 ? "bg-red-950/30 text-red-400 border-red-800" : 
+                            i === 1 ? "bg-amber-950/30 text-amber-400 border-amber-800" : 
+                            "bg-green-950/30 text-green-400 border-green-800"
                           }>
                             {i === 0 ? "High" : i === 1 ? "Medium" : "Low"} Risk
                           </Badge>
