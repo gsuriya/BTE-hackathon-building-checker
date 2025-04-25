@@ -12,39 +12,40 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-600 to-blue-700">
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+      <section className="w-full py-24 md:py-32 lg:py-40">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="grid gap-6 lg:grid-cols-2 items-center">
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-white">
                   Find Your Perfect NYC Apartment Without Surprises
                 </h1>
-                <p className="max-w-[600px] text-gray-200 md:text-xl">
+                <p className="max-w-[600px] text-xl text-blue-100 md:text-2xl">
                   Discover potential building issues before signing your lease. Get comprehensive reports on pest problems, maintenance issues, and more.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+              <div className="flex flex-row gap-4 mt-8">
                 <Link to="/map-search">
-                  <Button className="bg-white text-blue-600 hover:bg-gray-100">
+                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6 h-auto font-semibold">
                     Get Started
                   </Button>
                 </Link>
                 <Button 
-                  variant="outline" 
-                  className="border-white text-blue-600 bg-white/20 hover:bg-white/30" 
+                  variant="outline"
+                  size="lg"
+                  className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6 h-auto font-semibold"
                   onClick={scrollToFeatures}
                 >
                   Learn More
                 </Button>
               </div>
             </div>
-            <div className="relative h-[400px] lg:h-[500px] flex items-center justify-center rounded-lg overflow-hidden">
-              <div className="absolute inset-0 bg-black/20 z-10 rounded-lg" />
-              <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267')] bg-cover bg-center rounded-lg transform scale-105" />
-              <div className="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur p-4 rounded-lg shadow-lg">
+            <div className="relative h-[500px] lg:h-[600px] flex items-center justify-center rounded-2xl overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-black/20 z-10 rounded-2xl backdrop-blur-sm" />
+              <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267')] bg-cover bg-center rounded-2xl transform scale-105" />
+              <div className="absolute bottom-6 right-6 z-20 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg">
                 <div className="flex gap-2 items-center text-blue-700">
                   <Star className="h-5 w-5 fill-yellow-400 stroke-yellow-500" />
                   <span className="font-semibold">Livability Score:</span>
