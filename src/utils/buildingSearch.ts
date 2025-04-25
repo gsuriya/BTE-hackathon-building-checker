@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface BuildingData {
@@ -222,3 +223,8 @@ export const getSampleAddresses = async (limit: number = 10): Promise<string[]> 
     return [];
   }
 };
+
+// Add a window method to easily retrieve addresses from browser console
+if (typeof window !== 'undefined') {
+  (window as any).getSampleNYCAddresses = getSampleAddresses;
+}
