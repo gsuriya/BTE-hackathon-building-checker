@@ -436,7 +436,7 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <LineChart className="h-5 w-5 text-emerald-500" />
-            Monthly Trends
+            Monthly Trends (2024)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -444,7 +444,14 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={analysis.monthlyTrends}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                <XAxis dataKey="month" tick={{ fill: '#999' }} />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fill: '#999' }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
                 <YAxis tick={{ fill: '#999' }} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#222', border: 'none' }}
@@ -1489,11 +1496,12 @@ const Results = () => {
 
   const generateMonthlyTrends = (issues: BuildingIssue[]): { month: string, count: number }[] => {
     const months: { [key: string]: number } = {
-      'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0,
-      'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
+      'Jan 2024': 0, 'Feb 2024': 0, 'Mar 2024': 0, 'Apr 2024': 0, 'May 2024': 0, 'Jun 2024': 0,
+      'Jul 2024': 0, 'Aug 2024': 0, 'Sep 2024': 0, 'Oct 2024': 0, 'Nov 2024': 0, 'Dec 2024': 0
     };
     
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 
+                       'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024'];
     
     issues.forEach(issue => {
       if (!issue["Received Date"]) return;
