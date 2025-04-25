@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,7 @@ const Index = () => {
                 <Button className="bg-white text-blue-600 hover:bg-gray-100">
                   Get Started
                 </Button>
-                <Button variant="outline" className="border-white text-white hover:bg-white/20">
+                <Button variant="outline" className="border-white text-blue-600 hover:bg-white/20">
                   Learn More
                 </Button>
               </div>
