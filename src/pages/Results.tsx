@@ -1,3 +1,7 @@
+// analyzeIssues() --> use Deepseek API to analyze issues
+// fetchData() --> get data from supabase
+
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from "../lib/supabase";
@@ -18,20 +22,29 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { parseAddress } from '@/utils/address/parseAddress';
 
 interface BuildingIssue {
-  "Complaint Type": string;
-  "Complaint Category": string;
-  Status: string;
-  "Created Date": string;
-  Description?: string;
+  Type: string;
+  "Major Category": string;
+  "Complaint Status": string;
+  "Received Date": string;
+  "Status Description"?: string;
+  "Apartment"?: string;
+  location?: string;
 }
 
 interface IssueCategory {
   category: string;
   count: number;
   severity: number;
-  examples: BuildingIssue[];
+  examples: {
+    Type: string;
+    "Complaint Status": string;
+    "Received Date": string;
+    "Status Description"?: string;
+    location: string;
+  }[];
 }
 
 interface AnalysisResult {
@@ -62,100 +75,164 @@ const Results = () => {
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [loadingStep, setLoadingStep] = useState<'idle' | 'fetching' | 'analyzing' | 'error' | 'done'>('idle');
 
   const address = searchParams.get('address');
   const borough = searchParams.get('borough');
 
-  const categorizeIssues = (issues: BuildingIssue[]): Record<string, number> => {
-    return issues.reduce((acc, issue) => {
-      const category = issue["Complaint Category"] || issue["Complaint Type"];
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-  };
 
+  // GET DATA FROM SUPABASE
   const fetchBuildingData = async () => {
-    if (!address || !borough) {
-      setError('Missing address information');
+    if (!address || !borough) return;
+
+    setLoading(true);
+    setLoadingStep('fetching'); // Start fetching
+    setIssues([]);
+    setError(null);
+    setAnalysis(null); // Reset analysis
+
+    const parsedAddress = parseAddress(address);
+    if (!parsedAddress) {
+      setError('Invalid address format.');
       setLoading(false);
+      setLoadingStep('error');
       return;
     }
+    console.log('Parsed address:', parsedAddress);
+    const { houseNumber, streetName } = parsedAddress;
 
     try {
-      console.log('Fetching data for:', { address, borough });
-      
-      const [houseNumber, ...streetParts] = address.split(' ');
-      const streetName = streetParts.join(' ');
-
-      console.log('Parsed address:', { houseNumber, streetName });
-
+      // Fetch building data from Supabase using correct column names
       const { data, error: dbError } = await supabase
         .from('nyc_housing_data')
         .select(`
-          "Complaint Type",
-          "Complaint Category",
-          "Status",
-          "Created Date",
-          "Description"
-        `)
-        .eq('House Number', houseNumber)
-        .ilike('Street Name', streetName)
+          "Type",
+          "Major Category",
+          "Complaint Status",
+          "Received Date",
+          "Status Description",
+          "Apartment"
+        `) // Removed "Floor"
+        .eq('"House Number"', houseNumber.toUpperCase())
+        .ilike('"Street Name"', streetName.toUpperCase())
         .eq('Borough', borough)
         .limit(500);
 
       if (dbError) {
         console.error('Supabase query error:', dbError);
-        throw dbError;
-      }
+        setError(`Failed to fetch building data. Error: ${dbError.message}`);
+        setIssues([]);
+        setLoadingStep('error'); // Fetching error
+        return; // Stop here, but finally will still run
+      } else if (data && data.length > 0) {
+        console.log('=== RAW BUILDING DATA FROM SUPABASE ===');
+        console.log('Total issues found:', data.length);
+        
+        // Group issues by type with location details
+        const issueDetails = data.reduce((groups, issue) => {
+          const type = issue.Type;
+          if (!groups[type]) {
+            groups[type] = [];
+          }
+          groups[type].push({
+            location: issue.Apartment || 'Building-wide',
+            status: issue["Complaint Status"],
+            date: issue["Received Date"],
+            description: issue["Status Description"]
+          });
+          return groups;
+        }, {});
+        
+        console.log('=== DETAILED ISSUE BREAKDOWN BY LOCATION ===');
+        console.log(JSON.stringify(issueDetails, null, 2));
+        
+        console.log('Full data:', JSON.stringify(data, null, 2));
+        setIssues(data as BuildingIssue[]); 
+        setError(null);
 
-      if (!data || data.length === 0) {
-        setError('No records found for this address');
-        setLoading(false);
-        return;
-      }
+        setLoadingStep('analyzing'); // Switch step before analysis
+        await analyzeIssues(data as BuildingIssue[]); // Call analysis
 
-      console.log('Found building data:', data);
-      setIssues(data);
-      await analyzeIssues(data);
+      } else {
+        console.log('No data found for:', { houseNumber: houseNumber.toUpperCase(), streetName: streetName.toUpperCase(), borough }); // Add logging
+        setIssues([]);
+        setError('No building data found for this address.');
+        setLoadingStep('error'); // No data found
+      }
     } catch (err) {
-      console.error('Error fetching building data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch building data');
+      console.error('Error during data fetching or analysis:', err);
+      // Avoid overwriting specific error from analyzeIssues if it threw
+      if (!error) {
+         setError('An unexpected error occurred during data processing.');
+      }
+      setIssues([]);
+      setAnalysis(null);
+      setLoadingStep('error'); // Mark step as error
     } finally {
-      setLoading(false);
+      // Set final step only if no error occurred
+      if (loadingStep !== 'error') {
+        setLoadingStep('done');
+      }
+      setLoading(false); // Always set loading false
     }
   };
 
+
+  // USE DEEPSEEK API HERE TO ANALYZE ISSUES
   const analyzeIssues = async (buildingIssues: BuildingIssue[]) => {
     try {
-      const categories = categorizeIssues(buildingIssues);
-      
+      // Prepare a more detailed summary for the AI, including location
+      const issueSummary = buildingIssues.slice(0, 20).map(issue => ({ // Increased sample size slightly
+          type: issue.Type,
+          category: issue["Major Category"],
+          status: issue["Complaint Status"],
+          date: issue["Received Date"],
+          location: issue.Apartment || 'Building-wide', // Updated location logic, removed Floor
+          description: issue["Status Description"] || 'N/A'
+      }));
+
+      console.log('=== PROMPT BEING SENT TO DEEPSEEK ===');
+      // Log only the summary part of the prompt for brevity
+      console.log('Building Issues Summary (first 20 with location):', JSON.stringify(issueSummary, null, 2));
+
       const prompt = `
         Analyze these building issues and provide a detailed analysis in JSON format:
         
         Building Address: ${address}, ${borough}
-        Total Issues: ${buildingIssues.length}
-        Issue Categories: ${JSON.stringify(categories)}
-        Recent Issues (last 5):
-        ${JSON.stringify(buildingIssues.slice(0, 5), null, 2)}
+        Total Issues Found: ${buildingIssues.length} 
+        Issue Sample (first 20, including location):
+        ${JSON.stringify(issueSummary, null, 2)}
 
-        Please provide:
-        1. Livability Score (0-100) based on issue severity
-        2. Estimated repair costs range (low and high estimates)
-        3. Impact score on daily life (0-100)
-        4. Brief summary of major concerns
-        5. Specific recommendations for potential tenants
-        6. Analysis of issue categories with severity ratings
-        7. Monthly trends in issues
-        8. Severity breakdown (percentage of high/medium/low severity issues)
+        Please provide a JSON object matching the TypeScript interface AnalysisResult structure. 
+        
+        **CRITICAL SCORING GUIDELINES:**
+        - **Accuracy is paramount.** Base scores strictly on the provided data (severity, frequency, recency, status). Avoid generic scores.
+        - **Livability Score (0-100):** 
+            - Start at 100. 
+            - Deduct heavily for unresolved critical issues (HEAT/HOT WATER, PLUMBING major leaks, UNSANITARY serious infestations, STRUCTURAL, ELECTRIC fire hazards). 
+            - Deduct moderately for recurring non-critical issues or slow resolution times.
+            - Deduct less for isolated, minor, or quickly resolved issues.
+            - Consider the *density* of issues relative to the building size (if inferrable). Many complaints in a small building is worse than few in a large one.
+        - **Impact Score (0-100):** 
+            - Reflects how severely daily life is affected. 
+            - High impact (low score) for issues disrupting essential services (heat, water, safety).
+            - Medium impact for persistent nuisances (pests, noise, minor leaks).
+            - Low impact (high score) for cosmetic or isolated minor issues.
+        - **Estimated Repair Costs { low: number, high: number }:** Base on the *types* and *number* of issues reported. Electrical/Plumbing/Structural issues cost more than Paint/Plaster.
+        - **Severity Breakdown { high: number, medium: number, low: number } (%):** Categorize issues based on potential impact (Safety > Essential Services > Nuisance > Cosmetic). Calculate percentages based on the *entire* dataset provided, not just the sample.
 
-        Consider factors like:
-        - Health impacts (mold, pests, etc.)
-        - Safety concerns (structural issues, fire safety)
-        - Quality of life impacts (noise, heating/cooling)
-        - Maintenance responsiveness
-        - Recurring issues
+        **JSON STRUCTURE REQUIREMENTS:**
+        1. livabilityScore (number)
+        2. estimatedRepairCosts { low: number, high: number }
+        3. impactScore (number)
+        4. summary (string - concise overview reflecting the scores)
+        5. recommendations (string[] - actionable advice based on findings)
+        6. issueCategories (array of { category: string, count: number, severity: number (1-5, 5=highest), examples: array of { Type: string, "Complaint Status": string, "Received Date": string, "Status Description"?: string, location: string } }) - **Include the 'location' for each example.**
+        7. monthlyTrends (array of { month: string, count: number })
+        8. severityBreakdown { high: number, medium: number, low: number } (as percentages)
 
-        Format your response as a JSON object matching the TypeScript interface AnalysisResult.
+        Base your analysis on the provided sample, inferring potential overall conditions for the whole building.
+        IMPORTANT: Return **only** the raw JSON object without any markdown formatting, code blocks, or explanatory text.
       `;
 
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -174,17 +251,36 @@ const Results = () => {
       const data = await response.json();
       
       if (data.choices && data.choices[0] && data.choices[0].message) {
+        console.log('=== RAW RESPONSE FROM DEEPSEEK ===');
+        console.log(data.choices[0].message.content);
+        
         try {
-          const analysisResult = JSON.parse(data.choices[0].message.content);
+          let content = data.choices[0].message.content;
+          
+          // Remove markdown code blocks if present
+          content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+          
+          // Try to find JSON object in the content
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            content = jsonMatch[0];
+          }
+          
+          console.log('Attempting to parse JSON:', content);
+          
+          const analysisResult = JSON.parse(content);
           setAnalysis(analysisResult);
         } catch (parseError) {
           console.error('Error parsing AI response:', parseError);
+          console.error('Raw content:', data.choices[0].message.content);
           setError('Failed to parse analysis results');
         }
       }
     } catch (err) {
       console.error('Error analyzing issues:', err);
       setError('Failed to analyze building issues');
+      setAnalysis(null);
+      throw err; // Re-throw error so fetchBuildingData's catch block can handle the step
     }
   };
 
@@ -207,13 +303,27 @@ const Results = () => {
   };
 
   if (loading) {
+    let loadingText = 'Loading...';
+    let progressValue = 10; // Start with a small initial value
+
+    if (loadingStep === 'fetching') {
+        loadingText = 'Fetching building data from database...';
+        progressValue = 25;
+    } else if (loadingStep === 'analyzing') {
+        loadingText = 'Analyzing issues with AI... (this may take a moment)';
+        progressValue = 75;
+    }
     return (
-      <div className="min-h-screen bg-neutral-950">
+      // Use flex column layout to push footer down
+      <div className="min-h-screen bg-neutral-950 flex flex-col">
         <Header />
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        {/* Content area that grows */}
+        <div className="container mx-auto px-4 py-12 text-center flex-grow flex flex-col justify-center items-center">
+          {/* Replace spinner with Progress component */}
+          <div className="w-full max-w-md mb-4">
+            <Progress value={progressValue} className="h-2 bg-neutral-800" />
           </div>
+          <p className="text-neutral-400">{loadingText}</p>
         </div>
         <Footer />
       </div>
@@ -221,9 +331,11 @@ const Results = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    // Use flex column layout to push footer down
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
       <Header />
-      <div className="container mx-auto px-4 py-12">
+      {/* Make content area grow */}
+      <div className="container mx-auto px-4 py-12 flex-grow">
         <h1 className="text-3xl font-bold mb-6 text-white">
           Building Analysis Report
         </h1>
@@ -345,18 +457,22 @@ const Results = () => {
                               <div className="p-4 border-t border-neutral-800 space-y-3">
                                 {category.examples.map((issue, i) => (
                                   <div key={i} className="p-3 bg-neutral-800 rounded-lg">
-                                    <div className="flex items-start gap-2">
+                                    <div className="flex items-start gap-3"> {/* Increased gap slightly */}
                                       <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                                      <div>
+                                      <div className="flex-1"> {/* Allow text to wrap */}
                                         <p className="text-sm font-medium text-white">
-                                          {issue["Complaint Type"]}
+                                          {issue.Type} 
+                                          {/* Display Location */}
+                                          <span className="ml-2 text-xs font-normal text-neutral-400 bg-neutral-700 px-1.5 py-0.5 rounded">
+                                            📍 {issue.location || 'Unknown Location'} 
+                                          </span>
                                         </p>
-                                        <p className="text-xs text-neutral-400">
-                                          Status: {issue.Status}
+                                        <p className="text-xs text-neutral-400 mt-1">
+                                          Status: {issue["Complaint Status"]} | Reported: {formatDate(issue["Received Date"])}
                                         </p>
-                                        {issue.Description && (
+                                        {issue["Status Description"] && (
                                           <p className="text-xs text-neutral-400 mt-1">
-                                            {issue.Description}
+                                            {issue["Status Description"]}
                                           </p>
                                         )}
                                       </div>
