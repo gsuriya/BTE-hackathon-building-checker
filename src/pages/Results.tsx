@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,22 +5,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Building, AlertTriangle, Check, Info, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Building, AlertTriangle, Info } from "lucide-react";
 import IssuesList from '@/components/IssuesList';
 import LiveabilityScore from '@/components/LiveabilityScore';
 import AISummary from '@/components/AISummary';
 import IssuesCostEstimate from '@/components/IssuesCostEstimate';
 import AddressSearch from '@/components/AddressSearch';
 import { useToast } from '@/hooks/use-toast';
-
-interface BuildingData {
-  borough: string;
-  address: string;
-  housingIssues: any[];
-  buildingId?: string;
-  totalComplaints: number;
-}
+import { searchBuildingData, BuildingData } from '@/utils/buildingSearch';
 
 const Results = () => {
   const [searchParams] = useSearchParams();
@@ -46,27 +37,16 @@ const Results = () => {
       try {
         // Parse the search term - could be a full address, borough, etc.
         const searchTerm = decodeURIComponent(address).trim();
+        console.log("Searching for:", searchTerm);
         
-        // Search the database for matching buildings
-        const { data, error } = await supabase
-          .from('nyc_housing_data')
-          .select('*')
-          .or(`Borough.ilike.%${searchTerm}%, "Street Name".ilike.%${searchTerm}%, "House Number".ilike.%${searchTerm}%, "Post Code".ilike.%${searchTerm}%`)
-          .limit(100);
-          
-        if (error) {
-          throw error;
-        }
+        // Use the new search utility
+        const data = await searchBuildingData(searchTerm);
         
-        if (!data || data.length === 0) {
+        if (!data) {
           setShowNoResults(true);
-          setIsLoading(false);
-          return;
+        } else {
+          setBuildingData(data);
         }
-        
-        // Process the data
-        const processedData = processSearchResults(data, searchTerm);
-        setBuildingData(processedData);
         
       } catch (error) {
         console.error("Error fetching building data:", error);
@@ -75,6 +55,7 @@ const Results = () => {
           description: "Failed to retrieve building data. Please try again.",
           variant: "destructive",
         });
+        setShowNoResults(true);
       } finally {
         setIsLoading(false);
       }
@@ -83,31 +64,22 @@ const Results = () => {
     fetchBuildingData();
   }, [address, toast]);
   
-  // Helper function to process search results
-  const processSearchResults = (data: any[], searchTerm: string): BuildingData => {
-    // Group by building address
-    const buildingGroups = data.reduce((acc, item) => {
-      const key = `${item["House Number"] || ""} ${item["Street Name"] || ""}, ${item["Borough"] || ""}`;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
-      return acc;
-    }, {} as Record<string, any[]>);
+  // Helper function to count issues by category
+  const getCategoryBreakdown = (issues: any[]) => {
+    const categories: Record<string, number> = {};
     
-    // Find the best match (either exact match or first result)
-    const addresses = Object.keys(buildingGroups);
-    const bestMatch = addresses.find(addr => 
-      addr.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || addresses[0];
+    // Count issues by major category
+    issues.forEach(issue => {
+      const category = issue["Major Category"] || "Other";
+      if (!categories[category]) categories[category] = 0;
+      categories[category]++;
+    });
     
-    const issues = buildingGroups[bestMatch] || [];
-    
-    return {
-      borough: issues[0]?.Borough || "Unknown",
-      address: bestMatch,
-      housingIssues: issues,
-      buildingId: issues[0]?.["Building ID"],
-      totalComplaints: issues.length,
-    };
+    // Format as array for display
+    return Object.entries(categories).map(([name, count]) => ({
+      name,
+      count
+    })).sort((a, b) => b.count - a.count);
   };
   
   if (isLoading) {
@@ -297,24 +269,6 @@ const Results = () => {
       )}
     </div>
   );
-};
-
-// Helper function to get category breakdown from issues
-const getCategoryBreakdown = (issues: any[]) => {
-  const categories: Record<string, number> = {};
-  
-  // Count issues by major category
-  issues.forEach(issue => {
-    const category = issue["Major Category"] || "Other";
-    if (!categories[category]) categories[category] = 0;
-    categories[category]++;
-  });
-  
-  // Format as array for display
-  return Object.entries(categories).map(([name, count]) => ({
-    name,
-    count
-  })).sort((a, b) => b.count - a.count);
 };
 
 export default Results;

@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
   address: z.string().min(1, "Address is required")
@@ -32,8 +33,23 @@ const AddressSearch = () => {
     setIsSearching(true);
     
     try {
-      // Encode the address for URL safety
+      // Encode the address for URL safety and navigation
       const encodedAddress = encodeURIComponent(values.address.trim());
+      
+      // Test the search query with a small limit to ensure it's working
+      const { data, error } = await supabase
+        .from('nyc_housing_data')
+        .select('*')
+        .or(`Borough.ilike.%${values.address.trim()}%, "Street Name".ilike.%${values.address.trim()}%, "House Number".ilike.%${values.address.trim()}%, "Post Code".ilike.%${values.address.trim()}%`)
+        .limit(1);
+      
+      if (error) {
+        console.error("Supabase search error:", error);
+        throw error;
+      }
+      
+      // Log to console for debugging
+      console.log("Search query result:", data);
       
       // Navigate to the results page with the address as a parameter
       navigate(`/results?address=${encodedAddress}`);
@@ -44,6 +60,7 @@ const AddressSearch = () => {
         description: "Unable to process your search. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsSearching(false);
     }
   };
@@ -73,7 +90,7 @@ const AddressSearch = () => {
             disabled={isSearching}
           >
             <Search className="h-4 w-4 mr-2" />
-            Search
+            {isSearching ? 'Searching...' : 'Search'}
           </Button>
         </div>
         <div className="text-xs text-gray-500">
