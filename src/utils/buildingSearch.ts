@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface BuildingData {
@@ -8,6 +9,7 @@ export interface BuildingData {
   totalComplaints: number;
 }
 
+// The issue is likely in this function with an excessively deep type instantiation
 export const searchBuildingData = async (searchTerm: string): Promise<BuildingData | null> => {
   try {
     console.log("Searching for:", searchTerm);
@@ -27,41 +29,30 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
     let hasHouseNumber = /^\d+$/.test(potentialHouseNumber);
     
     // First try looking for matches with house number and street name
-    let query = supabase.from('nyc_housing_data').select('*');
-    
-    // If we have what looks like a house number, search more specifically
-    if (hasHouseNumber) {
-      // Use equality check for house number
-      query = query.eq('"House Number"', potentialHouseNumber);
+    let { data: matches, error } = await supabase.from('nyc_housing_data')
+      .select('*')
+      .limit(100);
       
-      // If we have more than just a house number, also filter by street name
-      if (searchParts.length > 1) {
-        const streetName = searchParts.slice(1).join(' ');
-        query = query.ilike('"Street Name"', `%${streetName}%`);
-      }
+    // Filter results based on search term
+    if (hasHouseNumber) {
+      // Filter by house number
+      matches = matches?.filter(item => 
+        item["House Number"] === potentialHouseNumber &&
+        (searchParts.length <= 1 || 
+         (item["Street Name"] && item["Street Name"].toLowerCase().includes(searchParts.slice(1).join(' '))))
+      ) || [];
     } else {
-      // If no house number, do a more general search on either field
-      query = query.or(`"House Number".ilike.%${searchTermClean}%,"Street Name".ilike.%${searchTermClean}%`);
+      // More general search
+      matches = matches?.filter(item => {
+        const fullAddress = `${item["House Number"]} ${item["Street Name"]}`.toLowerCase();
+        return fullAddress.includes(searchTermClean);
+      }) || [];
     }
-    
-    // Limit the results
-    query = query.limit(100);
-    
-    // Execute the query
-    const { data: matches, error } = await query;
-    
-    if (error) {
-      console.error("Supabase search error:", error);
-      throw error;
-    }
-    
-    console.log(`Found ${matches?.length || 0} matches for "${searchTerm}"`);
     
     if (!matches || matches.length === 0) {
-      // Try a more permissive search using tokenized parts of the address
+      // Try a more permissive search
       const searchWords = searchTermClean.split(/\s+/);
       
-      // Only proceed if we have meaningful search parts
       if (searchWords.length < 2) {
         console.log("Not enough specific information to search");
         return null;
@@ -76,19 +67,17 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
         return null;
       }
       
-      // Build a query for each relevant word
-      const fuzzySearches: string[] = [];
-      for (const word of relevantWords) {
-        fuzzySearches.push(`"House Number"::text='${word}'`, `"Street Name".ilike.%${word}%`);
-      }
-      
-      const { data: fuzzyMatches, error: fuzzyError } = await supabase
+      const { data: allData } = await supabase
         .from('nyc_housing_data')
         .select('*')
-        .or(fuzzySearches.join(','))
-        .limit(100);
+        .limit(200);
         
-      if (fuzzyError || !fuzzyMatches || fuzzyMatches.length === 0) {
+      const fuzzyMatches = allData?.filter(item => {
+        const fullAddress = `${item["House Number"]} ${item["Street Name"]} ${item["Borough"]}`.toLowerCase();
+        return relevantWords.some(word => fullAddress.includes(word.toLowerCase()));
+      }) || [];
+      
+      if (!fuzzyMatches || fuzzyMatches.length === 0) {
         return null;
       }
       
@@ -106,7 +95,9 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
 
 export const processSearchResults = (data: any[], searchTerm: string): BuildingData => {
   // Group by building address
-  const buildingGroups = data.reduce((acc, item) => {
+  const buildingGroups: Record<string, any[]> = {};
+  
+  data.forEach(item => {
     // Create a consistent building key format
     const houseNum = item["House Number"] || "";
     const streetName = item["Street Name"] || "";
@@ -115,10 +106,9 @@ export const processSearchResults = (data: any[], searchTerm: string): BuildingD
     // Create a standardized key format
     const key = `${houseNum} ${streetName}, ${borough}`.trim().toUpperCase();
     
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {} as Record<string, any[]>);
+    if (!buildingGroups[key]) buildingGroups[key] = [];
+    buildingGroups[key].push(item);
+  });
   
   // Find the best match
   const addresses = Object.keys(buildingGroups);
@@ -209,8 +199,6 @@ export const getSampleAddresses = async (limit: number = 10): Promise<string[]> 
     const { data, error } = await supabase
       .from('nyc_housing_data')
       .select('"House Number", "Street Name", "Borough"')
-      .filter('"House Number"', 'neq', '')  // Ensure house number exists
-      .filter('"Street Name"', 'neq', '')   // Ensure street name exists
       .limit(limit);
     
     if (error) {
