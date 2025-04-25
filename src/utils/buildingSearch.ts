@@ -21,62 +21,70 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
       return null;
     }
     
-    // First check for exact address match with house number and street
-    const { data: exactMatches, error: exactMatchError } = await supabase
-      .from('nyc_housing_data')
-      .select('*')
-      .textSearch('combined_address', `'${searchTermClean}'`, {
-        config: 'english',
-        type: 'plain'
-      })
-      .limit(100);
+    // Parse the search term to get house number and street name if possible
+    const searchParts = searchTermClean.split(/\s+/);
+    const potentialHouseNumber = searchParts[0];
+    let hasHouseNumber = /^\d+$/.test(potentialHouseNumber);
     
-    if (exactMatchError) {
-      console.error("Exact match search error:", exactMatchError);
+    // First try looking for matches with house number and street name
+    let query = supabase.from('nyc_housing_data').select('*');
+    
+    // If we have what looks like a house number, search more specifically
+    if (hasHouseNumber) {
+      query = query.eq('"House Number"', potentialHouseNumber);
+      
+      // If we have more than just a house number, also filter by street name
+      if (searchParts.length > 1) {
+        const streetName = searchParts.slice(1).join(' ');
+        query = query.ilike('"Street Name"', `%${streetName}%`);
+      }
+    } else {
+      // If no house number, do a more general search
+      query = query.or(`"House Number".ilike.%${searchTermClean}%,"Street Name".ilike.%${searchTermClean}%`);
     }
     
-    if (exactMatches && exactMatches.length > 0) {
-      console.log(`Found ${exactMatches.length} exact matches`);
-      return processSearchResults(exactMatches, searchTerm);
-    }
+    // Limit the results
+    query = query.limit(100);
     
-    // Try looking for partial matches with house number and street name
-    const { data: partialMatches, error } = await supabase
-      .from('nyc_housing_data')
-      .select('*')
-      .or(`"House Number".ilike.%${searchTermClean}%, "Street Name".ilike.%${searchTermClean}%`)
-      .limit(200);
+    // Execute the query
+    const { data: matches, error } = await query;
     
     if (error) {
       console.error("Supabase search error:", error);
       throw error;
     }
     
-    console.log(`Found ${partialMatches?.length || 0} partial matches for "${searchTerm}"`);
+    console.log(`Found ${matches?.length || 0} matches for "${searchTerm}"`);
     
-    if (!partialMatches || partialMatches.length === 0) {
+    if (!matches || matches.length === 0) {
       // Try a more permissive search using tokenized parts of the address
-      const searchParts = searchTermClean.split(/\s+/);
+      const searchWords = searchTermClean.split(/\s+/);
       
       // Only proceed if we have meaningful search parts
-      if (searchParts.length < 2) {
+      if (searchWords.length < 2) {
         console.log("Not enough specific information to search");
         return null;
       }
       
-      // Build a query that tries to match parts of the address
-      let queryFilters = searchParts
-        .filter(part => part.length > 2 && !["st", "street", "ave", "avenue", "blvd", "boulevard"].includes(part))
-        .map(part => `"House Number".ilike.%${part}% OR "Street Name".ilike.%${part}%`);
+      // Filter out common street suffix words
+      const relevantWords = searchWords.filter(word => 
+        word.length > 2 && !["st", "street", "ave", "avenue", "blvd", "boulevard"].includes(word)
+      );
       
-      if (queryFilters.length === 0) {
+      if (relevantWords.length === 0) {
         return null;
+      }
+      
+      // Build a query for each relevant word
+      const fuzzySearches = [];
+      for (const word of relevantWords) {
+        fuzzySearches.push(`"House Number"::text='${word}'`, `"Street Name".ilike.%${word}%`);
       }
       
       const { data: fuzzyMatches, error: fuzzyError } = await supabase
         .from('nyc_housing_data')
         .select('*')
-        .or(queryFilters.join(','))
+        .or(fuzzySearches.join(','))
         .limit(100);
         
       if (fuzzyError || !fuzzyMatches || fuzzyMatches.length === 0) {
@@ -88,7 +96,7 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
     }
     
     // Process the data
-    return processSearchResults(partialMatches, searchTerm);
+    return processSearchResults(matches, searchTerm);
   } catch (error) {
     console.error("Error in searchBuildingData:", error);
     throw error;
