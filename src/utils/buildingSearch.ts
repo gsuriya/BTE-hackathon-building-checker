@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface BuildingData {
@@ -96,7 +95,6 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
   }
 };
 
-// Improved helper function to process search results
 export const processSearchResults = (data: any[], searchTerm: string): BuildingData => {
   // Group by building address
   const buildingGroups = data.reduce((acc, item) => {
@@ -201,9 +199,9 @@ export const getSampleAddresses = async (limit: number = 10): Promise<string[]> 
     
     const { data, error } = await supabase
       .from('nyc_housing_data')
-      .select('House Number, Street Name, Borough')
-      .filter('House Number', 'neq', '')  // Ensure house number exists
-      .filter('Street Name', 'neq', '')   // Ensure street name exists
+      .select('"House Number", "Street Name", "Borough"')
+      .filter('"House Number"', 'neq', '')  // Ensure house number exists
+      .filter('"Street Name"', 'neq', '')   // Ensure street name exists
       .limit(limit);
     
     if (error) {
@@ -224,7 +222,6 @@ export const getSampleAddresses = async (limit: number = 10): Promise<string[]> 
   }
 };
 
-// Add a window method to easily retrieve addresses from browser console
 if (typeof window !== 'undefined') {
   (window as any).getSampleNYCAddresses = getSampleAddresses;
 }
