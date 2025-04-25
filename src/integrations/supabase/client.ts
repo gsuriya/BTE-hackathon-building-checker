@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -9,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Function to log sample addresses to console
+// Function to log sample addresses to console and return the data
 export async function logSampleAddresses() {
   try {
     console.log('Fetching sample addresses from Supabase...');
@@ -47,5 +48,5 @@ export async function logSampleAddresses() {
   }
 }
 
-// Log addresses when the file is imported
-// logSampleAddresses().catch(console.error); // Removed this line 
+// Export getSampleAddresses as an alias of logSampleAddresses for backwards compatibility
+export const getSampleAddresses = logSampleAddresses;
