@@ -69,6 +69,7 @@ interface BuildingIssue {
   "Problem Status Date"?: string;
   "Complaint Status Date"?: string;
   location?: string;
+  Borough?: string;
 }
 
 // Interface for issue categories with more details
@@ -258,7 +259,9 @@ const OverviewTab = ({ analysis, issues }: { analysis: EnhancedAnalysisResult, i
               <div className="space-y-2">
                 <p className="text-sm text-neutral-400">Est. Repair Costs</p>
                 <p className="font-semibold text-white">
-                  {analysis.estimatedRepairCosts ? 
+                  {analysis.estimatedRepairCosts && 
+                   typeof analysis.estimatedRepairCosts.low === 'number' && 
+                   typeof analysis.estimatedRepairCosts.high === 'number' ? 
                     `$${analysis.estimatedRepairCosts.low.toLocaleString()} - $${analysis.estimatedRepairCosts.high.toLocaleString()}` 
                     : 'Calculating...'}
                 </p>
@@ -1369,7 +1372,15 @@ const Results = () => {
 
   // Helper functions for fallback analysis
   const calculateLivabilityScore = (issues: BuildingIssue[]): number => {
-    // Always return a random score between 85 and 95
+    // Check if the address is in the Bronx from the first issue's borough
+    const isBronx = issues.length > 0 && issues[0].Borough?.toUpperCase() === 'BRONX';
+    
+    if (isBronx) {
+      // For Bronx, return a random score between 63 and 67
+      return Math.floor(Math.random() * (67 - 63 + 1)) + 63;
+    }
+    
+    // For non-Bronx addresses, return a random score between 85 and 95 as before
     return Math.floor(Math.random() * (95 - 85 + 1)) + 85;
   };
 
@@ -1522,13 +1533,26 @@ const Results = () => {
     issues: BuildingIssue[], 
     parsedAddress: { houseNumber: string; streetName: string; borough: string | undefined }
   ): { high: number, medium: number, low: number } => {
-    // Always set low to 97%
+    // Check if the address is in the Bronx
+    const isBronx = parsedAddress.borough?.toUpperCase() === 'BRONX';
+    
+    if (isBronx) {
+      // For Bronx addresses, show worse severity breakdown
+      // Low: ~75%, Medium: ~15%, High: ~10%
+      const lowPercent = 75 + (Math.random() * 2 - 1); // 74-76%
+      const mediumPercent = 15 + (Math.random() * 2 - 1); // 14-16%
+      const highPercent = 100 - lowPercent - mediumPercent; // Roughly 10%
+      
+      return {
+        high: +highPercent.toFixed(2),
+        medium: +mediumPercent.toFixed(2),
+        low: +lowPercent.toFixed(2)
+      };
+    }
+    
+    // For non-Bronx addresses, keep the original 97% low severity distribution
     const lowPercent = 97;
-    
-    // Randomly distribute the remaining 3% between medium and high
     const remainingPercent = 100 - lowPercent; // 3%
-    
-    // Generate a random number between 0 and remainingPercent
     const randomHigh = +(Math.random() * (remainingPercent)).toFixed(2);
     const mediumPercent = +(remainingPercent - randomHigh).toFixed(2);
     
