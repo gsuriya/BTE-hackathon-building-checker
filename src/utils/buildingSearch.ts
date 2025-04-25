@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface BuildingData {
@@ -9,7 +8,6 @@ export interface BuildingData {
   totalComplaints: number;
 }
 
-// The issue is likely in this function with an excessively deep type instantiation
 export const searchBuildingData = async (searchTerm: string): Promise<BuildingData | null> => {
   try {
     console.log("Searching for:", searchTerm);
@@ -17,76 +15,49 @@ export const searchBuildingData = async (searchTerm: string): Promise<BuildingDa
     // Get a clean version of the search term
     const searchTermClean = searchTerm.trim().toLowerCase();
     
-    // Require minimum specific search length (more than just a borough name)
-    if (searchTermClean.length < 5) {
-      console.log("Search term too short or generic");
+    // Extract house number and street name
+    const parts = searchTermClean.match(/^(\d+)\s+(.+?)(?:,|$)/i);
+    if (!parts) {
+      console.log("Could not parse house number and street name");
       return null;
     }
     
-    // Parse the search term to get house number and street name if possible
-    const searchParts = searchTermClean.split(/\s+/);
-    const potentialHouseNumber = searchParts[0];
-    let hasHouseNumber = /^\d+$/.test(potentialHouseNumber);
+    const [_, houseNumber, streetName] = parts;
+    console.log("Parsed address:", { houseNumber, streetName });
     
-    // First try looking for matches with house number and street name
-    let { data: matches, error } = await supabase.from('nyc_housing_data')
+    // First try an exact match
+    let { data: exactMatches, error } = await supabase
+      .from('nyc_housing_data')
       .select('*')
+      .eq('House Number', houseNumber)
+      .ilike('Street Name', streetName.trim())
       .limit(100);
       
-    // Filter results based on search term
-    if (hasHouseNumber) {
-      // Filter by house number
-      matches = matches?.filter(item => 
-        item["House Number"] === potentialHouseNumber &&
-        (searchParts.length <= 1 || 
-         (item["Street Name"] && item["Street Name"].toLowerCase().includes(searchParts.slice(1).join(' '))))
-      ) || [];
-    } else {
-      // More general search
-      matches = matches?.filter(item => {
-        const fullAddress = `${item["House Number"]} ${item["Street Name"]}`.toLowerCase();
-        return fullAddress.includes(searchTermClean);
-      }) || [];
+    if (error) {
+      console.error("Database error:", error);
+      return null;
     }
     
-    if (!matches || matches.length === 0) {
-      // Try a more permissive search
-      const searchWords = searchTermClean.split(/\s+/);
-      
-      if (searchWords.length < 2) {
-        console.log("Not enough specific information to search");
-        return null;
-      }
-      
-      // Filter out common street suffix words
-      const relevantWords = searchWords.filter(word => 
-        word.length > 2 && !["st", "street", "ave", "avenue", "blvd", "boulevard"].includes(word)
-      );
-      
-      if (relevantWords.length === 0) {
-        return null;
-      }
-      
-      const { data: allData } = await supabase
-        .from('nyc_housing_data')
-        .select('*')
-        .limit(200);
-        
-      const fuzzyMatches = allData?.filter(item => {
-        const fullAddress = `${item["House Number"]} ${item["Street Name"]} ${item["Borough"]}`.toLowerCase();
-        return relevantWords.some(word => fullAddress.includes(word.toLowerCase()));
-      }) || [];
-      
-      if (!fuzzyMatches || fuzzyMatches.length === 0) {
-        return null;
-      }
-      
+    if (exactMatches && exactMatches.length > 0) {
+      console.log(`Found ${exactMatches.length} exact matches`);
+      return processSearchResults(exactMatches, searchTerm);
+    }
+    
+    // If no exact match, try a more flexible search
+    const { data: fuzzyMatches } = await supabase
+      .from('nyc_housing_data')
+      .select('*')
+      .or(`House Number.eq.${houseNumber},Street Name.ilike.%${streetName.trim()}%`)
+      .limit(100);
+    
+    if (fuzzyMatches && fuzzyMatches.length > 0) {
       console.log(`Found ${fuzzyMatches.length} fuzzy matches`);
       return processSearchResults(fuzzyMatches, searchTerm);
     }
     
-    // Process the data
-    return processSearchResults(matches, searchTerm);
+    console.log("No matches found");
+    return null;
+    
   } catch (error) {
     console.error("Error in searchBuildingData:", error);
     throw error;
