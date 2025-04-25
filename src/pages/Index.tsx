@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+
 const Index = () => {
   const scrollToFeatures = () => {
     document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -32,14 +33,14 @@ const Index = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Link to="/map-search">
-                  <Button size="lg" className="bg-emerald-500 text-white hover:bg-emerald-600 text-lg px-8 py-6 h-auto font-semibold">
+                  <Button size="lg" className="bg-emerald-500 text-white hover:bg-emerald-600 text-lg px-6 py-4 h-auto font-semibold">
                     Get Started
                   </Button>
                 </Link>
                 <Button 
                   variant="outline"
                   size="lg"
-                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-950 text-lg px-8 py-6 h-auto font-semibold"
+                  className="border-emerald-500 text-emerald-500 hover:bg-emerald-950 text-lg px-6 py-4 h-auto font-semibold"
                   onClick={scrollToFeatures}
                 >
                   Learn More

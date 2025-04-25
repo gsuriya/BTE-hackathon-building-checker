@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,11 @@ const searchSchema = z.object({
 
 type SearchFormValues = z.infer<typeof searchSchema>;
 
-const AddressSearch = () => {
+interface AddressSearchProps {
+  onSearch?: (address: string) => void;
+}
+
+const AddressSearch: React.FC<AddressSearchProps> = ({ onSearch }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSearching, setIsSearching] = useState(false);
@@ -54,12 +57,15 @@ const AddressSearch = () => {
         setIsSearching(false);
         return;
       }
-      
-      // Encode the address for URL safety and navigation
-      const encodedAddress = encodeURIComponent(cleanedAddress);
-      
-      // Navigate to the results page with the address as a parameter
-      navigate(`/results?address=${encodedAddress}`);
+
+      // Call the onSearch prop if provided
+      if (onSearch) {
+        await onSearch(cleanedAddress);
+      } else {
+        // Default behavior - navigate to results page
+        const encodedAddress = encodeURIComponent(cleanedAddress);
+        navigate(`/results?address=${encodedAddress}`);
+      }
     } catch (error) {
       console.error("Search error:", error);
       toast({

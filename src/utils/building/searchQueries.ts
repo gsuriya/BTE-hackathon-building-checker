@@ -1,33 +1,57 @@
+import { supabase } from "@/lib/supabase";
 
-import { supabase } from "@/integrations/supabase/client";
+// Columns needed for initial search display and linking to results
+const SEARCH_RESULT_COLUMNS = '"House Number", "Street Name", "Borough"';
 
 export const searchExactAddress = async (houseNumber: string, streetName: string) => {
-  const { data, error } = await supabase
-    .from('nyc_housing_data')
-    .select('*')
-    .eq('House Number', houseNumber)
-    .ilike('Street Name', streetName)
-    .limit(100);
+  try {
+    const cleanHouseNumber = houseNumber.trim();
+    const cleanStreetName = streetName.trim().replace(/\s+/g, ' ');
+
+    console.log('[searchExactAddress] Executing with:', { cleanHouseNumber, cleanStreetName });
+
+    const { data, error } = await supabase
+      .from('nyc_housing_data')
+      .select(SEARCH_RESULT_COLUMNS)
+      .eq('House Number', cleanHouseNumber)
+      .ilike('Street Name', cleanStreetName)
+      .limit(10); // Reduce limit for faster initial search
+      
+    if (error) {
+      console.error("[searchExactAddress] Supabase error:", error);
+      throw error;
+    }
     
-  if (error) {
-    console.error("Database error in exact search:", error);
-    return null;
+    console.log(`[searchExactAddress] Found ${data?.length || 0} results`);
+    return data;
+  } catch (err) {
+    console.error("[searchExactAddress] Caught error:", err);
+    throw err;
   }
-  
-  return data;
 };
 
 export const searchFuzzyAddress = async (houseNumber: string, streetName: string) => {
-  const { data, error } = await supabase
-    .from('nyc_housing_data')
-    .select('*')
-    .or(`House Number.eq.${houseNumber},Street Name.ilike.%${streetName}%`)
-    .limit(100);
+  try {
+    const cleanHouseNumber = houseNumber.trim();
+    const cleanStreetName = streetName.trim().replace(/\s+/g, ' ');
+
+    console.log('[searchFuzzyAddress] Executing with:', { cleanHouseNumber, cleanStreetName });
+
+    const { data, error } = await supabase
+      .from('nyc_housing_data')
+      .select(SEARCH_RESULT_COLUMNS)
+      .or(`"House Number".eq.${cleanHouseNumber},"Street Name".ilike.%${cleanStreetName}%`) // Ensure column names are quoted if they contain spaces
+      .limit(10); // Reduce limit for faster initial search
+      
+    if (error) {
+      console.error("[searchFuzzyAddress] Supabase error:", error);
+      throw error;
+    }
     
-  if (error) {
-    console.error("Database error in fuzzy search:", error);
-    return null;
+    console.log(`[searchFuzzyAddress] Found ${data?.length || 0} results`);
+    return data;
+  } catch (err) {
+    console.error("[searchFuzzyAddress] Caught error:", err);
+    throw err;
   }
-  
-  return data;
 };

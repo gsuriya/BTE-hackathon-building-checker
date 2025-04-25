@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -21,9 +20,6 @@ const Header = () => {
           </Link>
           <Link to="/map-search" className="text-neutral-300 hover:text-white transition-colors">
             Map Search
-          </Link>
-          <Link to="/results" className="text-neutral-300 hover:text-white transition-colors">
-            Results
           </Link>
           <Button className="bg-emerald-500 hover:bg-emerald-600 text-white ml-4">
             Get Started

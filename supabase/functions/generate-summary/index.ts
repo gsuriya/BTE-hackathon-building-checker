@@ -1,7 +1,9 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") || "sk-547e6b2fb8534ceda65ff0aca459d0d1";
+const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
+if (!DEEPSEEK_API_KEY) {
+  throw new Error("DEEPSEEK_API_KEY environment variable is not set");
+}
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
 interface RequestBody {

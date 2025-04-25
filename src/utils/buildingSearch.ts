@@ -2,8 +2,44 @@ import { BuildingData } from "./types/building";
 import { parseAddress } from "./address/parseAddress";
 import { searchExactAddress, searchFuzzyAddress } from "./building/searchQueries";
 import { processSearchResults } from "./building/processResults";
+import { supabase } from "../lib/supabase";
 
-export { BuildingData };
+// Test Supabase connection and log results to console
+const testSupabaseConnection = async () => {
+  console.log("%c🔌 Testing Supabase connection...", "color: #10b981; font-weight: bold;");
+  
+  try {
+    const { data, error } = await supabase
+      .from('nyc_housing_data')
+      .select('*')
+      .limit(10);
+    
+    if (error) {
+      console.error("❌ Supabase connection error:", error);
+      return false;
+    }
+    
+    console.log("%c✅ Supabase connection successful!", "color: #10b981; font-weight: bold;");
+    console.log("%c📋 First 10 rows of NYC housing data:", "color: #10b981; font-weight: bold;");
+    console.table(data);
+    
+    // Log the total count of records
+    const { count } = await supabase
+      .from('nyc_housing_data')
+      .select('*', { count: 'exact', head: true });
+    
+    console.log(`%c📊 Total records in database: ${count}`, "color: #10b981; font-weight: bold;");
+    return true;
+  } catch (err) {
+    console.error("❌ Unexpected error testing Supabase connection:", err);
+    return false;
+  }
+};
+
+// Run the test in development mode
+if (import.meta.env.DEV) {
+  testSupabaseConnection();
+}
 
 export const searchBuildingData = async (searchTerm: string): Promise<BuildingData | null> => {
   try {
