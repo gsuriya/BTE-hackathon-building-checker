@@ -1,4 +1,5 @@
-import { BuildingData } from "./types/building";
+
+import { type BuildingData } from "./types/building";
 import { parseAddress } from "./address/parseAddress";
 import { searchExactAddress, searchFuzzyAddress } from "./building/searchQueries";
 import { processSearchResults } from "./building/processResults";
