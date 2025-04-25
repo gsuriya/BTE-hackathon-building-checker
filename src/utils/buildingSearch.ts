@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface BuildingData {
@@ -193,4 +192,33 @@ export const processSearchResults = (data: any[], searchTerm: string): BuildingD
     buildingId: issues[0]?.["Building ID"],
     totalComplaints: issues.length,
   };
+};
+
+export const getSampleAddresses = async (limit: number = 10): Promise<string[]> => {
+  try {
+    console.log(`Fetching ${limit} sample addresses`);
+    
+    const { data, error } = await supabase
+      .from('nyc_housing_data')
+      .select('House Number, Street Name, Borough')
+      .filter('House Number', 'neq', '')  // Ensure house number exists
+      .filter('Street Name', 'neq', '')   // Ensure street name exists
+      .limit(limit);
+    
+    if (error) {
+      console.error("Error fetching sample addresses:", error);
+      return [];
+    }
+    
+    // Format addresses into readable strings
+    const addresses = data.map(item => 
+      `${item['House Number']} ${item['Street Name']}, ${item['Borough']}`
+    );
+    
+    console.log("Sample addresses:", addresses);
+    return addresses;
+  } catch (err) {
+    console.error("Unexpected error in getSampleAddresses:", err);
+    return [];
+  }
 };
