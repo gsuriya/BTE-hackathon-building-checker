@@ -1,4 +1,4 @@
-# NYC Building Checker
+# Bellam Building Checker
 
 A modern web application that makes apartment hunting in New York City transparent and stress-free by providing detailed building analysis and complaint history.
 
@@ -13,12 +13,13 @@ A modern web application that makes apartment hunting in New York City transpare
 
 ## Tech Stack
 
-- **Frontend**: React + TypeScript + Vite
+- **Frontend**: React 18 + TypeScript + Vite
 - **UI Components**: shadcn/ui
 - **Styling**: Tailwind CSS
 - **Database**: Supabase
 - **Maps**: Mapbox
-- **AI Analysis**: DeepSeek AI
+- **Data Visualization**: Recharts
+- **State Management**: React Query
 
 ## Getting Started
 
@@ -27,14 +28,13 @@ A modern web application that makes apartment hunting in New York City transpare
 - Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 - Supabase account for database
 - Mapbox API key for maps
-- DeepSeek API key for AI analysis
 
 ### Installation
 
 1. Clone the repository
 ```sh
-git clone https://github.com/gsuriya/empty-beginning-project-start.git
-cd empty-beginning-project-start
+git clone https://github.com/gsuriya/Bellam-Building-Checker.git
+cd Bellam-Building-Checker
 ```
 
 2. Install dependencies
@@ -47,7 +47,6 @@ npm install
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_key
 VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_token
-VITE_DEEPSEEK_API_KEY=your_deepseek_key
 ```
 
 4. Start the development server
@@ -61,16 +60,16 @@ npm run dev
 - `/src/pages` - Main application pages
 - `/src/utils` - Utility functions and helpers
 - `/src/lib` - Third-party service configurations
-- `/src/styles` - Global styles and Tailwind configuration
+- `/src/hooks` - Custom React hooks
+- `/src/integrations` - External API integrations
 
 ## Features in Detail
 
 ### Building Analysis
 - Comprehensive complaint history
-- AI-powered livability scoring
-- Estimated repair costs
-- Impact on daily life assessment
+- Livability scoring
 - Severity breakdown of issues
+- Impact on daily life assessment
 
 ### Interactive Search
 - Address-based search
